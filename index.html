@@ -31,6 +31,11 @@ body { margin: 0; font-family: var(--f-texto); font-size: 15px; line-height: 1.5
   padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 26px; }
 .topo { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
 .selo { font-family: var(--f-dado); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--neve-2); }
+.acoes { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; max-width: 100%; }
+.pdf { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 16px; border-radius: 999px; border: 1px solid var(--ceu-3); background: var(--ceu-2); color: var(--neve); font-weight: 600; font-size: 14px; text-decoration: none; }
+.pdf:hover { border-color: var(--ouro); color: var(--ouro); }
+.pdf:focus-visible { outline: 2px solid var(--neve); outline-offset: 2px; }
+.pdf svg { width: 16px; height: 16px; }
 .musica { display: inline-flex; flex-wrap: wrap; max-width: 100%; align-items: center; gap: 10px; padding: 8px 8px 8px 16px; border-radius: 999px; background: var(--ceu-2); border: 1px solid var(--ceu-3); }
 .musica .faixa { font-size: 13px; color: var(--neve-2); min-width: 0; flex: 1 1 140px; max-width: 230px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .musica button { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 16px; border-radius: 999px; background: var(--ouro); color: #2a1c05; font-weight: 600; font-size: 14px; }
@@ -132,10 +137,13 @@ svg text { font-family: var(--f-texto); }
 <main class="pagina">
   <div class="topo">
     <span class="selo">Fluxo × TOTVS · armazém 02 · 17/11/2026</span>
-    <div class="musica" aria-label="Trilha de Natal">
+    <div class="acoes">
+      <a class="pdf" href="estoque-integrado-resumo-17-11-2026.pdf" download="estoque-integrado-resumo-17-11-2026.pdf"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>Baixar PDF</a>
+      <div class="musica" aria-label="Trilha de Natal">
       <span class="faixa" id="faixa">Trilha: melodias de domínio público</span>
       <input id="volume" type="range" min="0" max="100" value="55" aria-label="Volume">
       <button id="tocar" type="button" aria-pressed="false">▶ Tocar</button>
+    </div>
     </div>
   </div>
 
