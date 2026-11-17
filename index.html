@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Balanço de Natal do Estoque</title>
+<meta name="description" content="Fluxo × TOTVS em 17/11/2026: 99,6% do estoque integrado.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,500;0,9..144,700;1,9..144,500&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: noite de neve. Um medidor grande com o número que importa, três contadores e dois gráficos que contam como se chega lá. */
+:root {
+  color-scheme: dark;
+  --ceu: #0c1626; --ceu-2: #12213a; --ceu-3: #1a2d4c;
+  --neve: #eef3f8; --neve-2: #a9b8cc; --neve-3: #73849c;
+  --ouro: #e3b45a;
+  --s-alinhado: #3a9e66; --s-g2: #4a8fd0; --s-op: #de5a52; --s-inativo: #9a7fd8;
+  --f-display: "Fraunces", Georgia, "Times New Roman", serif;
+  --f-texto: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --f-dado: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+* { box-sizing: border-box; }
+html, body { background: var(--ceu); color: var(--neve); }
+body { margin: 0; font-family: var(--f-texto); font-size: 15px; line-height: 1.55; overflow-x: hidden;
+  background: radial-gradient(1200px 600px at 70% -10%, #1b335a 0%, transparent 60%), radial-gradient(900px 500px at 0% 0%, #142a49 0%, transparent 55%), var(--ceu); background-attachment: fixed; }
+#neve { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 30; }
+.pagina { position: relative; z-index: 2; max-width: 1080px; margin: 0 auto; padding-block: 28px 140px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); display: grid; gap: 26px; }
+.topo { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.selo { font-family: var(--f-dado); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--neve-2); }
+.musica { display: inline-flex; flex-wrap: wrap; max-width: 100%; align-items: center; gap: 10px; padding: 8px 8px 8px 16px; border-radius: 999px; background: var(--ceu-2); border: 1px solid var(--ceu-3); }
+.musica .faixa { font-size: 13px; color: var(--neve-2); min-width: 0; flex: 1 1 140px; max-width: 230px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.musica button { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; height: 36px; padding: 0 16px; border-radius: 999px; background: var(--ouro); color: #2a1c05; font-weight: 600; font-size: 14px; }
+.musica input { width: 80px; accent-color: var(--ouro); }
+button:focus-visible, .chip:focus-visible, .seg:focus-visible { outline: 2px solid var(--neve); outline-offset: 2px; }
+
+.hero { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr); gap: 28px; align-items: center; padding-block: 18px 4px; }
+.hero h1 { margin: 0; font-family: var(--f-display); font-weight: 500; font-size: clamp(38px, 6vw, 66px); line-height: 1.03; letter-spacing: -.02em; text-wrap: balance; }
+.hero h1 em { color: var(--ouro); font-style: italic; }
+.hero p { margin: 14px 0 0; max-width: 54ch; color: var(--neve-2); font-size: 16px; }
+.medidor { justify-self: center; position: relative; width: min(340px, 82vw); aspect-ratio: 1; max-width: 100%; }
+.medidor svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+.medidor .trilho { stroke: var(--ceu-3); }
+.medidor .arco { stroke: var(--s-alinhado); stroke-linecap: round; }
+.medidor .resto { stroke: var(--s-inativo); }
+.medidor .centro { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; gap: 2px; }
+.medidor b { font-family: var(--f-display); font-weight: 700; font-size: clamp(56px, 11vw, 92px); line-height: .9; letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+.medidor span { color: var(--neve-2); font-size: 14px; }
+
+.kpis { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+.kpi { background: color-mix(in srgb, var(--ceu-2) 88%, transparent); border: 1px solid var(--ceu-3); border-radius: 16px; padding: 18px 20px; display: grid; gap: 4px; min-width: 0; }
+.kpi b { font-family: var(--f-display); font-weight: 700; font-size: 40px; line-height: 1; font-variant-numeric: tabular-nums; }
+.kpi span { color: var(--neve-2); font-size: 13.5px; }
+.kpi .ponto { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; vertical-align: 1px; }
+
+.quadro { background: color-mix(in srgb, var(--ceu-2) 88%, transparent); border: 1px solid var(--ceu-3); border-radius: 18px; padding: 22px; display: grid; gap: 14px; min-width: 0; }
+.quadro h2 { margin: 0; font-family: var(--f-display); font-weight: 500; font-size: 26px; letter-spacing: -.01em; text-wrap: balance; }
+.quadro .sub { margin: -6px 0 0; color: var(--neve-2); max-width: 70ch; }
+.cab { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.rever { all: unset; cursor: pointer; font-size: 13px; color: var(--neve-2); padding: 6px 12px; border-radius: 8px; border: 1px solid var(--ceu-3); }
+.rever:hover { color: var(--neve); }
+
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { all: unset; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; padding: 6px 12px; border-radius: 999px; border: 1px solid var(--ceu-3); font-size: 13px; color: var(--neve-2); transition: opacity .2s, border-color .2s; }
+.chip i { width: 10px; height: 10px; border-radius: 3px; }
+.chip b { color: var(--neve); font-variant-numeric: tabular-nums; }
+.chip[aria-pressed="true"] { border-color: var(--neve-3); color: var(--neve); }
+.barra { display: flex; gap: 2px; height: 56px; border-radius: 8px; overflow: hidden; }
+.seg { height: 100%; width: 0; transition: width 1.1s cubic-bezier(.2,.8,.2,1), opacity .2s, filter .2s; }
+.seg:hover { filter: brightness(1.15); }
+.esmaece .seg:not(.foco) { opacity: .25; }
+.esmaece .chip:not([aria-pressed="true"]) { opacity: .55; }
+.detalhe { min-height: 48px; color: var(--neve-2); font-size: 14px; }
+.detalhe b { color: var(--neve); }
+
+svg text { font-family: var(--f-texto); }
+.eixo { fill: var(--neve-3); font-size: 11.5px; }
+.val { fill: var(--neve); font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.grade { stroke: var(--ceu-3); stroke-width: 1; }
+.liga { stroke: var(--neve-3); stroke-width: 1; stroke-dasharray: 3 3; }
+.coluna { transition: opacity .15s; }
+.coluna.ativo { opacity: .82; }
+.alvo { fill: transparent; }
+.rolar { overflow-x: auto; }
+
+#dica { position: fixed; z-index: 40; pointer-events: none; padding: 10px 12px; border-radius: 10px; background: #f6f8fb; color: #13203a; font-size: 12.5px; line-height: 1.45; box-shadow: 0 8px 28px rgba(0,0,0,.35); max-width: 280px; opacity: 0; transform: translateY(4px); transition: opacity .12s, transform .12s; }
+#dica.on { opacity: 1; transform: none; }
+#dica .l { display: flex; justify-content: space-between; gap: 14px; }
+#dica .l span:last-child { font-variant-numeric: tabular-nums; font-weight: 600; }
+
+.rodape { color: var(--neve-3); font-size: 12.5px; display: grid; gap: 6px; max-width: 80ch; }
+@media (max-width: 760px) { .hero { grid-template-columns: minmax(0, 1fr); } .kpis { grid-template-columns: minmax(0, 1fr); } .quadro { padding: 16px; } }
+@media (prefers-reduced-motion: reduce) { .seg, #dica, .coluna { transition: none; } }
+</style>
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22%3E%3Ctext y=%22.9em%22 font-size=%2290%22%3E%E2%9D%84%3C/text%3E%3C/svg%3E">
+</head>
+<body>
+<canvas id="neve" aria-hidden="true"></canvas>
+<div id="dica" role="tooltip"></div>
+
+<main class="pagina">
+  <div class="topo">
+    <span class="selo">Fluxo × TOTVS · armazém 02 · 17/11/2026</span>
+    <div class="musica" aria-label="Trilha de Natal">
+      <span class="faixa" id="faixa">Trilha: melodias de domínio público</span>
+      <input id="volume" type="range" min="0" max="100" value="55" aria-label="Volume">
+      <button id="tocar" type="button" aria-pressed="false">▶ Tocar</button>
+    </div>
+  </div>
+
+  <section class="hero">
+    <div>
+      <h1>O estoque chega ao Natal <em>integrado</em></h1>
+      <p>Comparamos o estoque do Fluxo com o do TOTVS nos 1.245 produtos que a integração controla. 99,6% batem; os 0,4% restantes são códigos inativos. Mexa o cursor: a neve vem junto.</p>
+    </div>
+    <div class="medidor" role="img" aria-label="99,6% do estoque integrado">
+      <svg viewBox="0 0 120 120"><circle class="trilho" cx="60" cy="60" r="50" fill="none" stroke-width="11"/><circle class="resto" id="resto" cx="60" cy="60" r="50" fill="none" stroke-width="11"/><circle class="arco" id="arco" cx="60" cy="60" r="50" fill="none" stroke-width="11"/></svg>
+      <div class="centro"><b id="pct">0%</b><span>integrado</span></div>
+    </div>
+  </section>
+
+  <section class="kpis" aria-label="Números do dia">
+    <div class="kpi"><b data-conta="1245">0</b><span>produtos comparados no armazém 02</span></div>
+    <div class="kpi"><b data-conta="1240">0</b><span><i class="ponto" style="background:var(--s-alinhado)"></i>integrados entre Fluxo e TOTVS</span></div>
+    <div class="kpi"><b data-conta="5">0</b><span><i class="ponto" style="background:var(--s-inativo)"></i>restantes, todos códigos inativos</span></div>
+  </section>
+
+  <section class="quadro" aria-labelledby="t1">
+    <div class="cab"><h2 id="t1">Como o estoque fica integrado</h2></div>
+    <p class="sub">Clique numa categoria para destacar; passe o mouse na barra para ver os números. A largura é a quantidade de produtos.</p>
+    <div class="chips" id="chips" role="group" aria-label="Categorias"></div>
+    <div class="barra" id="barra" role="img" aria-label="Composição dos 1.245 produtos"></div>
+    <div class="detalhe" id="detalhe" aria-live="polite">Toque numa categoria para ver o que ela significa.</div>
+  </section>
+
+  <section class="quadro" aria-labelledby="t2">
+    <div class="cab"><h2 id="t2">Do 75,5% ao 99,6%</h2><button class="rever" id="rever" type="button">↻ Rever animação</button></div>
+    <p class="sub">Cada coluna soma uma parte do estoque integrado. Passe o mouse para ver quantos produtos cada uma traz.</p>
+    <div class="rolar"><svg id="cascata" role="img" aria-label="Composição do percentual integrado"></svg></div>
+  </section>
+
+  <footer class="rodape">
+    <span>Fontes: relatório de estoque do Fluxo (17/11/2026, 15h04) e MATA225 do TOTVS. Considera a lógica das OPs: o material em ordem de produção fica no saldo do TOTVS até a OP ser finalizada. Os produtos do grupo 2 ficam zerados no TOTVS, por decisão.</span>
+    <span>Trilha: Jingle Bells (J. L. Pierpont, 1857), We Wish You a Merry Christmas e Deck the Halls (tradicionais), em domínio público, sintetizadas no navegador. Nenhuma gravação é usada.</span>
+  </footer>
+</main>
+
+<script>
+const css = (v) => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+const reduz = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const fmt = (v, c = 0) => Number(v).toLocaleString('pt-BR', { minimumFractionDigits: c, maximumFractionDigits: c });
+const TOTAL = 1245;
+const CATS = [
+  { k: 'alinhado', nome: 'Iguais ao Fluxo', n: 940, cor: '--s-alinhado', txt: 'o saldo do TOTVS é igual ao físico do Fluxo.' },
+  { k: 'g2', nome: 'Grupo 2 zerado', n: 100, cor: '--s-g2', txt: 'ficam zerados no TOTVS por decisão: o grupo 2 não é estoque.' },
+  { k: 'op', nome: 'Material em OP', n: 200, cor: '--s-op', txt: 'o TOTVS mantém o material das OPs abertas até a finalização; a integração considera essa lógica.' },
+  { k: 'inativo', nome: 'Códigos inativos', n: 5, cor: '--s-inativo', txt: 'códigos inativos, fora da conta do estoque ativo.' },
+];
+
+/* dica */
+const dica = document.getElementById('dica');
+function mostrar(ev, html) {
+  dica.innerHTML = html; dica.classList.add('on');
+  const r = dica.getBoundingClientRect(); let x = ev.clientX + 14, y = ev.clientY + 14;
+  if (x + r.width > innerWidth - 8) x = ev.clientX - r.width - 14;
+  if (y + r.height > innerHeight - 8) y = ev.clientY - r.height - 14;
+  dica.style.left = Math.max(8, x) + 'px'; dica.style.top = Math.max(8, y) + 'px';
+}
+const esconder = () => dica.classList.remove('on');
+const linha = (a, b) => `<div class="l"><span>${a}</span><span>${b}</span></div>`;
+const pct = (n) => fmt(100 * n / TOTAL, 1) + '%';
+
+/* animação de número */
+function contar(el, alvo, casas, sufixo, ms) {
+  if (reduz) { el.textContent = fmt(alvo, casas) + sufixo; return; }
+  const t0 = performance.now();
+  (function q(t) { const p = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - p, 3); el.textContent = fmt(alvo * e, casas) + sufixo; if (p < 1) requestAnimationFrame(q); })(t0);
+}
+
+/* medidor */
+(function medidor() {
+  const C = 2 * Math.PI * 50, arco = document.getElementById('arco'), resto = document.getElementById('resto');
+  arco.style.strokeDasharray = C; arco.style.strokeDashoffset = C;
+  resto.style.strokeDasharray = `${C * 0.004} ${C}`; resto.style.strokeDashoffset = -C * 0.996 + 'px'; resto.style.opacity = 0;
+  const fim = C * (1 - 0.996);
+  if (reduz) { arco.style.strokeDashoffset = fim; resto.style.opacity = 1; }
+  else {
+    arco.style.transition = 'stroke-dashoffset 2.2s cubic-bezier(.2,.8,.2,1)'; resto.style.transition = 'opacity .6s 2s';
+    requestAnimationFrame(() => requestAnimationFrame(() => { arco.style.strokeDashoffset = fim; resto.style.opacity = 1; }));
+  }
+  contar(document.getElementById('pct'), 99.6, 1, '%', 2200);
+  document.querySelectorAll('[data-conta]').forEach((el) => contar(el, Number(el.dataset.conta), 0, '', 1600));
+})();
+
+/* composição com destaque */
+(function composicao() {
+  const barra = document.getElementById('barra'), chips = document.getElementById('chips'), det = document.getElementById('detalhe'), quadro = barra.closest('.quadro');
+  let foco = null;
+  const segs = CATS.map((c) => {
+    const s = document.createElement('div'); s.className = 'seg'; s.style.background = css(c.cor); s.tabIndex = 0;
+    const html = `<b>${c.nome}</b>${linha('Produtos', fmt(c.n))}${linha('Do total', pct(c.n))}`;
+    s.addEventListener('mousemove', (e) => mostrar(e, html)); s.addEventListener('mouseleave', esconder);
+    s.addEventListener('click', () => escolher(c.k));
+    s.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); escolher(c.k); } });
+    barra.appendChild(s);
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'chip'; b.setAttribute('aria-pressed', 'false');
+    b.innerHTML = `<i style="background:${css(c.cor)}"></i>${c.nome} <b>${fmt(c.n)}</b>`;
+    b.addEventListener('click', () => escolher(c.k)); chips.appendChild(b);
+    return { c, s, b };
+  });
+  function escolher(k) {
+    foco = foco === k ? null : k;
+    quadro.classList.toggle('esmaece', !!foco);
+    segs.forEach(({ c, s, b }) => { s.classList.toggle('foco', c.k === foco); b.setAttribute('aria-pressed', String(c.k === foco)); });
+    const c = CATS.find((x) => x.k === foco);
+    det.innerHTML = c ? `<b>${fmt(c.n)} produtos (${pct(c.n)})</b>: ${c.txt}` : 'Toque numa categoria para ver o que ela significa.';
+  }
+  const crescer = () => segs.forEach(({ c, s }) => { s.style.width = `max(6px, ${100 * c.n / TOTAL}%)`; });
+  if (reduz) crescer(); else setTimeout(crescer, 250);
+})();
+
+/* cascata 75,5% → 99,6% */
+const svgEl = (n, a) => { const e = document.createElementNS('http://www.w3.org/2000/svg', n); for (const k in a) e.setAttribute(k, a[k]); return e; };
+const PASSOS = [
+  { nome: 'Iguais ao Fluxo', n: 940, cor: '--s-alinhado' },
+  { nome: '+ Grupo 2 zerado', n: 100, cor: '--s-g2' },
+  { nome: '+ Material em OP', n: 200, cor: '--s-op' },
+  { nome: 'Integrado', n: 1240, cor: '--s-alinhado', total: true },
+  { nome: 'Códigos inativos', n: 5, cor: '--s-inativo', fora: true },
+];
+function cascata(animar) {
+  const svg = document.getElementById('cascata'); svg.innerHTML = '';
+  const W = Math.max(320, svg.parentElement.clientWidth), H = 320, base = 262, topo = 34, esq = 44;
+  svg.setAttribute('viewBox', `0 0 ${W} ${H}`); svg.setAttribute('width', W); svg.setAttribute('height', H);
+  const esc = (p) => (base - topo) * p / 100;   // p em % do total (0–100)
+  [0, 25, 50, 75, 100].forEach((p) => {
+    const y = base - esc(p); svg.appendChild(svgEl('line', { class: 'grade', x1: esq, x2: W - 6, y1: y, y2: y }));
+    svg.appendChild(Object.assign(svgEl('text', { x: esq - 6, y: y + 4, 'text-anchor': 'end', class: 'eixo' }), { textContent: p + '%' }));
+  });
+  const col = (W - esq - 6) / PASSOS.length, bw = Math.min(70, col * 0.58);
+  let acum = 0;
+  PASSOS.forEach((p, i) => {
+    const pp = 100 * p.n / TOTAL;
+    let ini = p.total ? 0 : p.fora ? 100 * 1240 / TOTAL : acum;
+    const fim = ini + pp; if (!p.total && !p.fora) acum = fim;
+    const cx = esq + col * i + col / 2, x = cx - bw / 2, y1 = base - esc(fim), y0 = base - esc(ini), h = Math.max(4, y0 - y1);
+    const r = svgEl('rect', { class: 'coluna', x, y: animar && !reduz ? y0 : y1, width: bw, height: animar && !reduz ? 0 : h, rx: 4, fill: css(p.cor) });
+    svg.appendChild(r);
+    if (i < PASSOS.length - 1 && !p.total) svg.appendChild(svgEl('line', { class: 'liga', x1: x + bw, x2: x + col, y1, y2: y1 }));
+    const rotulo = Object.assign(svgEl('text', { x: cx, y: y1 - 8, 'text-anchor': 'middle', class: 'val', opacity: animar && !reduz ? 0 : 1 }), { textContent: (p.total ? '' : p.fora ? '' : '+') + fmt(pp, 1) + '%' });
+    if (p.total) rotulo.textContent = fmt(pp, 1) + '%';
+    svg.appendChild(rotulo);
+    svg.appendChild(Object.assign(svgEl('text', { x: cx, y: base + 20, 'text-anchor': 'middle', class: 'eixo' }), { textContent: p.nome.replace('+ ', '') }));
+    if (animar && !reduz) {
+      const atraso = 250 + i * 380, t0 = performance.now() + atraso;
+      (function q(t) { const k = Math.max(0, Math.min(1, (t - t0) / 700)), e = 1 - Math.pow(1 - k, 3);
+        r.setAttribute('y', y0 - h * e); r.setAttribute('height', h * e); rotulo.setAttribute('opacity', k >= 1 ? 1 : 0); if (k < 1) requestAnimationFrame(q); })(performance.now());
+    }
+    const alvo = svgEl('rect', { class: 'alvo', x: cx - col / 2, y: topo - 24, width: col, height: base - topo + 48 });
+    const html = `<b>${p.nome.replace('+ ', '')}</b>${linha('Produtos', fmt(p.n))}${linha('Do total', fmt(pp, 1) + '%')}${p.total ? linha('Soma', '75,5% + 8,0% + 16,1%') : ''}`;
+    alvo.addEventListener('mousemove', (e) => { r.classList.add('ativo'); mostrar(e, html); });
+    alvo.addEventListener('mouseleave', () => { r.classList.remove('ativo'); esconder(); });
+    svg.appendChild(alvo);
+  });
+}
+cascata(true);
+document.getElementById('rever').addEventListener('click', () => cascata(true));
+let rz; addEventListener('resize', () => { clearTimeout(rz); rz = setTimeout(() => cascata(false), 150); });
+
+/* ── neve ───────────────────────────────────────────────────── */
+(function neve() {
+  const cv = document.getElementById('neve'), cx = cv.getContext('2d');
+  let W, H, dpr, chao, flocos = [];
+  const COLS = 160;
+  function tamanho() {
+    dpr = Math.min(2, window.devicePixelRatio || 1); W = innerWidth; H = innerHeight;
+    cv.width = W * dpr; cv.height = H * dpr; cx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    chao = new Float32Array(COLS);
+  }
+  tamanho(); addEventListener('resize', tamanho);
+  // cristal de 6 braços pré-desenhado (camada da frente)
+  const cristal = document.createElement('canvas'); cristal.width = cristal.height = 64;
+  (() => { const c = cristal.getContext('2d'); c.translate(32, 32); c.strokeStyle = 'rgba(255,255,255,.95)'; c.lineCap = 'round'; c.lineWidth = 2.2;
+    for (let i = 0; i < 6; i++) { c.beginPath(); c.moveTo(0, 0); c.lineTo(0, -26); c.moveTo(0, -12); c.lineTo(-7, -19); c.moveTo(0, -12); c.lineTo(7, -19); c.moveTo(0, -20); c.lineTo(-4, -24); c.moveTo(0, -20); c.lineTo(4, -24); c.stroke(); c.rotate(Math.PI / 3); } })();
+  const novo = (x, y, vx, vy, cursor) => {
+    const z = cursor ? 0.55 + Math.random() * 0.45 : Math.random();   // profundidade: 0 longe, 1 perto
+    return { x, y, vx, vy, z, r: 0.8 + z * (cursor ? 3.4 : 2.6), fase: Math.random() * 6.28, giro: (Math.random() - .5) * .04, ang: Math.random() * 6.28,
+      cristal: z > 0.82 && Math.random() < 0.55, vida: 1, cursor };
+  };
+  const ambiente = () => Math.round(Math.min(220, W * H / 9000) * (reduz ? 0.35 : 1));
+  for (let i = 0; i < ambiente(); i++) flocos.push(novo(Math.random() * W, Math.random() * H, 0, 0, false));
+  let mx = -999, my = -999, mvx = 0, mvy = 0, vento = 0, t0 = performance.now();
+  addEventListener('pointermove', (e) => {
+    const dx = e.clientX - mx, dy = e.clientY - my; const novoMouse = mx < -900;
+    mx = e.clientX; my = e.clientY; if (novoMouse) return;
+    mvx = mvx * 0.6 + dx * 0.4; mvy = mvy * 0.6 + dy * 0.4;
+    const vel = Math.hypot(dx, dy), n = Math.min(reduz ? 1 : 6, Math.floor(vel / 7) + (Math.random() < .5 ? 1 : 0));
+    for (let i = 0; i < n && flocos.length < 900; i++) {
+      flocos.push(novo(mx + (Math.random() - .5) * 18, my + (Math.random() - .5) * 18, dx * 0.06 + (Math.random() - .5) * 1.2, dy * 0.04 - Math.random() * 0.6, true));
+    }
+  }, { passive: true });
+  function passo(t) {
+    const dt = Math.min(2.5, (t - t0) / 16.67); t0 = t;
+    vento += ((Math.sin(t / 7000) * 0.35 + Math.sin(t / 2300) * 0.15) - vento) * 0.01;
+    mvx *= 0.92; mvy *= 0.92;
+    cx.clearRect(0, 0, W, H);
+    const colW = W / COLS;
+    for (let i = flocos.length - 1; i >= 0; i--) {
+      const f = flocos[i];
+      const queda = 0.35 + f.z * 1.1;                       // terminal: perto cai mais rápido
+      f.fase += 0.012 * dt;
+      // rajada do cursor: empurra o que está perto
+      const ddx = f.x - mx, ddy = f.y - my, d2 = ddx * ddx + ddy * ddy;
+      if (d2 < 22000 && !f.cursor) { const k = (1 - d2 / 22000) * 0.06; f.vx += mvx * k * 0.25 + (ddx / 150) * k; f.vy += mvy * k * 0.15; }
+      f.vx += ((vento * (0.4 + f.z) + Math.sin(f.fase) * 0.35 * (0.4 + f.z)) - f.vx) * 0.025 * dt;
+      f.vy += (queda - f.vy) * 0.02 * dt;
+      f.x += f.vx * dt; f.y += f.vy * dt; f.ang += f.giro * dt;
+      if (f.x < -20) f.x = W + 20; else if (f.x > W + 20) f.x = -20;
+      // assenta no chão (só os de perto acumulam)
+      const c = Math.max(0, Math.min(COLS - 1, Math.floor(f.x / colW)));
+      if (f.y > H - chao[c] - f.r) {
+        if (!reduz && f.z > 0.45 && chao[c] < 46) { chao[c] += f.r * 0.22; if (c > 0) chao[c - 1] += f.r * 0.08; if (c < COLS - 1) chao[c + 1] += f.r * 0.08; }
+        if (f.cursor) { flocos.splice(i, 1); continue; }
+        f.y = -10 - Math.random() * 40; f.x = Math.random() * W; f.vx = 0; f.vy = 0;
+      }
+      const a = 0.35 + f.z * 0.6;
+      if (f.cristal) {
+        const s = f.r * 3.2; cx.save(); cx.globalAlpha = a; cx.translate(f.x, f.y); cx.rotate(f.ang); cx.drawImage(cristal, -s, -s, s * 2, s * 2); cx.restore();
+      } else {
+        const g = cx.createRadialGradient(f.x, f.y, 0, f.x, f.y, f.r * 1.8);
+        g.addColorStop(0, `rgba(255,255,255,${a})`); g.addColorStop(0.55, `rgba(240,246,255,${a * 0.55})`); g.addColorStop(1, 'rgba(240,246,255,0)');
+        cx.fillStyle = g; cx.beginPath(); cx.arc(f.x, f.y, f.r * 1.8, 0, 6.283); cx.fill();
+      }
+    }
+    // o monte de neve: suaviza, derrete devagar, desenha
+    for (let i = 1; i < COLS - 1; i++) chao[i] = chao[i] * 0.96 + (chao[i - 1] + chao[i + 1]) * 0.02;
+    for (let i = 0; i < COLS; i++) chao[i] = Math.max(0, chao[i] - 0.004 * dt);
+    cx.beginPath(); cx.moveTo(0, H);
+    for (let i = 0; i < COLS; i++) cx.lineTo(i * colW + colW / 2, H - chao[i]);
+    cx.lineTo(W, H); cx.closePath();
+    const gr = cx.createLinearGradient(0, H - 50, 0, H); gr.addColorStop(0, 'rgba(248,251,255,.95)'); gr.addColorStop(1, 'rgba(214,228,245,.95)');
+    cx.fillStyle = gr; cx.fill();
+    // repõe a neve de fundo
+    while (flocos.filter((f) => !f.cursor).length < ambiente()) flocos.push(novo(Math.random() * W, -10, 0, 0, false));
+    requestAnimationFrame(passo);
+  }
+  requestAnimationFrame(passo);
+})();
+
+/* ── trilha: melodias de domínio público, sintetizadas ──────── */
+(function trilha() {
+  // [nota MIDI, duração em tempos]; 0 = pausa
+  const MUSICAS = [
+    { nome: 'Jingle Bells (J. L. Pierpont, 1857)', bpm: 132, guizo: true, notas: [
+      [76,1],[76,1],[76,2],[76,1],[76,1],[76,2],[76,1],[79,1],[72,1.5],[74,.5],[76,4],
+      [77,1],[77,1],[77,1.5],[77,.5],[77,1],[76,1],[76,.5],[76,.5],[76,1],[74,1],[74,1],[76,1],[74,2],[79,2],
+      [76,1],[76,1],[76,2],[76,1],[76,1],[76,2],[76,1],[79,1],[72,1.5],[74,.5],[76,4],
+      [77,1],[77,1],[77,1.5],[77,.5],[77,1],[76,1],[76,.5],[76,.5],[79,1],[79,1],[77,1],[74,1],[72,4]] },
+    { nome: 'We Wish You a Merry Christmas (tradicional)', bpm: 120, compasso: 3, notas: [
+      [67,1],[72,1],[72,.5],[74,.5],[72,.5],[71,.5],[69,1],[69,1],[69,1],[74,1],[74,.5],[76,.5],[74,.5],[72,.5],[71,1],[67,1],
+      [67,1],[76,1],[76,.5],[77,.5],[76,.5],[74,.5],[72,1],[69,1],[67,.5],[67,.5],[69,1],[74,1],[71,1],[72,2],[0,1]] },
+    { nome: 'Deck the Halls (tradicional)', bpm: 128, notas: [
+      [79,1.5],[77,.5],[76,1],[74,1],[72,1],[74,1],[76,1],[72,1],[74,.5],[76,.5],[77,.5],[74,.5],[76,1.5],[74,.5],[72,1],[71,1],[72,2],[0,2],
+      [74,1.5],[76,.5],[77,1],[74,1],[76,1.5],[77,.5],[79,1],[74,1],[76,.5],[78,.5],[79,1],[81,.5],[83,.5],[84,1],[83,1],[81,1],[79,2],[0,2],
+      [79,1.5],[77,.5],[76,1],[74,1],[72,1],[74,1],[76,1],[72,1],[81,.5],[81,.5],[81,.5],[81,.5],[79,1.5],[77,.5],[76,1],[74,1],[72,2],[0,2]] },
+  ];
+  const freq = (m) => 440 * Math.pow(2, (m - 69) / 12);
+  const raiz = (m) => { const pc = m % 12; return [0, 4, 7].includes(pc) ? 48 : [5, 9].includes(pc) ? 53 : 55; };   // C, F ou G
+  let ac = null, mestre = null, eco = null, tocando = false, idx = 0, timer = null, proxT = 0, fila = [];
+  const btn = document.getElementById('tocar'), faixa = document.getElementById('faixa'), vol = document.getElementById('volume');
+  function iniciarAudio() {
+    ac = new (window.AudioContext || window.webkitAudioContext)();
+    mestre = ac.createGain(); mestre.gain.value = vol.value / 100 * 0.5;
+    const comp = ac.createDynamicsCompressor(); mestre.connect(comp); comp.connect(ac.destination);
+    // eco suave (sala)
+    eco = ac.createDelay(1); eco.delayTime.value = 0.28; const fb = ac.createGain(); fb.gain.value = 0.28; const molhado = ac.createGain(); molhado.gain.value = 0.22;
+    const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 2600;
+    eco.connect(lp); lp.connect(fb); fb.connect(eco); lp.connect(molhado); molhado.connect(mestre);
+  }
+  function sino(m, t, dur, ganho) {   // sino/celesta: FM com decaimento
+    const o = ac.createOscillator(), mod = ac.createOscillator(), mg = ac.createGain(), g = ac.createGain(), f = freq(m);
+    o.type = 'sine'; o.frequency.value = f; mod.type = 'sine'; mod.frequency.value = f * 3.5;
+    mg.gain.setValueAtTime(f * 1.4, t); mg.gain.exponentialRampToValueAtTime(f * 0.05, t + 0.6);
+    mod.connect(mg); mg.connect(o.frequency);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(ganho, t + 0.008); g.gain.exponentialRampToValueAtTime(0.0001, t + Math.max(0.9, dur * 1.8));
+    o.connect(g); g.connect(mestre); g.connect(eco);
+    o.start(t); mod.start(t); o.stop(t + Math.max(1, dur * 2)); mod.stop(t + Math.max(1, dur * 2));
+  }
+  function baixo(m, t, dur) {
+    const o = ac.createOscillator(), g = ac.createGain(), lp = ac.createBiquadFilter();
+    o.type = 'triangle'; o.frequency.value = freq(m); lp.type = 'lowpass'; lp.frequency.value = 600;
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.16, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + dur * 0.95);
+    o.connect(lp); lp.connect(g); g.connect(mestre); o.start(t); o.stop(t + dur);
+  }
+  let ruido = null;
+  function guizo(t) {   // guizos de trenó: ruído filtrado bem curto
+    if (!ruido) { ruido = ac.createBuffer(1, ac.sampleRate * 0.2, ac.sampleRate); const d = ruido.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 3); }
+    const s = ac.createBufferSource(), hp = ac.createBiquadFilter(), g = ac.createGain();
+    s.buffer = ruido; hp.type = 'highpass'; hp.frequency.value = 7000; g.gain.value = 0.09;
+    s.connect(hp); hp.connect(g); g.connect(mestre); s.start(t);
+  }
+  function agendarMusica(t) {
+    const mu = MUSICAS[idx], seg = 60 / mu.bpm, compasso = mu.compasso || 4;
+    faixa.textContent = '♪ ' + mu.nome;
+    let tt = t, batida = 0;
+    for (const [m, d] of mu.notas) {
+      if (m) sino(m, tt, d * seg, 0.22);
+      if (m && batida % compasso === 0) baixo(raiz(m) - 12, tt, compasso * seg);
+      if (mu.guizo) for (let k = 0; k < d; k += 0.5) guizo(tt + k * seg);
+      tt += d * seg; batida += d;
+    }
+    return tt + seg * 2;
+  }
+  function laco() {
+    if (!tocando) return;
+    if (ac.currentTime > proxT - 1.5) { proxT = agendarMusica(Math.max(proxT, ac.currentTime + 0.1)); idx = (idx + 1) % MUSICAS.length; }
+    timer = setTimeout(laco, 400);
+  }
+  btn.addEventListener('click', async () => {
+    if (!ac) iniciarAudio();
+    if (!tocando) {
+      await ac.resume(); tocando = true; btn.textContent = '❚❚ Pausar'; btn.setAttribute('aria-pressed', 'true');
+      if (proxT < ac.currentTime) proxT = ac.currentTime + 0.1; laco();
+    } else {
+      tocando = false; clearTimeout(timer); await ac.suspend(); btn.textContent = '▶ Tocar'; btn.setAttribute('aria-pressed', 'false');
+    }
+  });
+  vol.addEventListener('input', () => { if (mestre) mestre.gain.value = vol.value / 100 * 0.5; });
+})();
+</script>
+
+</body>
+</html>
